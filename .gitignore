@@ -1,0 +1,78 @@
+# BMAD / Agent Output
+_bmad-output/
+_bmad/
+.agent/
+.agents/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# General build files and logs
+*.log
+*.pyc
+*.swp
+*.class
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+**/coverage/
+
+# Flutter specific symbolication & obfuscation
+**/app.*.symbols
+**/app.*.map.json
+
+# iOS & macOS related build artifacts
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral/
+
+# Android related build artifacts
+**/android/*/debug/
+**/android/*/profile/
+**/android/*/release/
+**/android/.gradle/
+**/android/local.properties
+**/android/gen/
+**/.gradle/
+
+# Secrets, API Keys, and Firebase configs (DO NOT COMMIT)
+**/key.properties
+**/*.keystore
+**/*.jks
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
+**/macos/Runner/GoogleService-Info.plist
+**/lib/firebase_options.dart
+
+# Firebase tools
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Environment Variables
+.env
+.env.*
