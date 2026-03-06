@@ -200,20 +200,16 @@ class IssueService {
             (data['total_rating'] as num?)?.toDouble() ?? 0.0;
         final currentCount =
             (data['completed_tasks_count'] as num?)?.toInt() ?? 0;
-        final currentPoints = (data['points'] as num?)?.toInt() ?? 0;
 
         final newCount = currentCount + 1;
         final newTotalRating = currentTotalRating + rating!.toDouble();
         final newAverageRating = newTotalRating / newCount;
 
-        // Points distribution: 10 base points + bonus based on rating
-        final earnedPoints = 10 + (rating * 5);
-
+        // Efficiently update worker's average rating
         transaction.update(workerRef, {
           'total_rating': newTotalRating,
           'completed_tasks_count': newCount,
           'rating': double.parse(newAverageRating.toStringAsFixed(2)),
-          'points': currentPoints + earnedPoints,
         });
       }
 
@@ -266,20 +262,16 @@ class IssueService {
             (data['total_rating'] as num?)?.toDouble() ?? 0.0;
         final currentCount =
             (data['completed_tasks_count'] as num?)?.toInt() ?? 0;
-        final currentPoints = (data['points'] as num?)?.toInt() ?? 0;
 
         final newCount = currentCount + 1;
         final newTotalRating = currentTotalRating + rating.toDouble();
         final newAverageRating = newTotalRating / newCount;
 
-        // Points distribution: Bonus for reporter high ratings
-        final earnedPoints = 15 + (rating * 6);
-
+        // Efficiently update worker's average rating
         transaction.update(workerRef, {
           'total_rating': newTotalRating,
           'completed_tasks_count': newCount,
           'rating': double.parse(newAverageRating.toStringAsFixed(2)),
-          'points': currentPoints + earnedPoints,
         });
       }
     });

@@ -26,6 +26,7 @@ class AppUser {
   final String? facultyId;
   final String? workerId;
   final String displayName;
+  final String? realName;
   final int points;
   final double rating;
   final double totalRating;
@@ -42,6 +43,7 @@ class AppUser {
     this.facultyId,
     this.workerId,
     this.displayName = '',
+    this.realName,
     this.points = 0,
     this.rating = 0.0,
     this.totalRating = 0.0,
@@ -62,6 +64,7 @@ class AppUser {
       facultyId: data['faculty_id'] as String?,
       workerId: data['worker_id'] as String?,
       displayName: data['display_name'] as String? ?? '',
+      realName: data['real_name'] as String?,
       points: (data['points'] as num?)?.toInt() ?? 0,
       rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
       totalRating: (data['total_rating'] as num?)?.toDouble() ?? 0.0,
@@ -82,6 +85,7 @@ class AppUser {
       'faculty_id': facultyId,
       'worker_id': workerId,
       'display_name': displayName,
+      'real_name': realName,
       'points': points,
       'rating': rating,
       'total_rating': totalRating,

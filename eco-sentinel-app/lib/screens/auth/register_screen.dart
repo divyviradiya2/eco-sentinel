@@ -20,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordCtrl = TextEditingController();
   final _idCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
+  final _realNameCtrl = TextEditingController();
 
   UserRole _selectedRole = UserRole.student;
   bool _obscurePassword = true;
@@ -30,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordCtrl.dispose();
     _idCtrl.dispose();
     _nameCtrl.dispose();
+    _realNameCtrl.dispose();
     super.dispose();
   }
 
@@ -87,6 +89,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       facultyId: _needsFacultyId ? _idCtrl.text.trim() : null,
       workerId: _needsWorkerId ? _idCtrl.text.trim() : null,
       displayName: _nameCtrl.text.trim(),
+      realName: _selectedRole == UserRole.faculty
+          ? _realNameCtrl.text.trim()
+          : null,
     );
 
     if (!mounted) return;
@@ -141,12 +146,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // --- Display Name ---
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Display Name (optional)',
-                    prefixIcon: Icon(Icons.person_outline),
+                  decoration: InputDecoration(
+                    labelText: _selectedRole == UserRole.faculty
+                        ? 'Alias (Public)'
+                        : 'Display Name (optional)',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    hintText: _selectedRole == UserRole.faculty
+                        ? 'How you appear on leaderboard'
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // --- Real Name (Faculty Only) ---
+                if (_selectedRole == UserRole.faculty) ...[
+                  TextFormField(
+                    controller: _realNameCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Faculty Name (Official)',
+                      prefixIcon: Icon(Icons.assignment_ind_outlined),
+                      hintText: 'Your official name for leaderboard',
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Official name is required for Faculty'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // --- Email ---
                 TextFormField(

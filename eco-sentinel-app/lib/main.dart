@@ -13,6 +13,7 @@ import 'screens/shared/settings_screen.dart';
 import 'screens/shared/reporter_dashboard.dart';
 import 'providers/issue_provider.dart';
 import 'services/issue_service.dart';
+import 'services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,11 @@ class SwachhCampusApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        Provider(create: (_) => AuthService()),
+        ChangeNotifierProvider(
+          create: (context) =>
+              AuthProvider(authService: context.read<AuthService>()),
+        ),
         ChangeNotifierProvider(create: (_) => IssueProvider(IssueService())),
       ],
       child: MaterialApp(

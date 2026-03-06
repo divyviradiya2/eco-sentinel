@@ -77,6 +77,7 @@ class AuthService {
     String? facultyId,
     String? workerId,
     String displayName = '',
+    String? realName,
   }) async {
     // Client-side validation guards
     if (role == UserRole.student &&
@@ -121,6 +122,7 @@ class AuthService {
       facultyId: facultyId,
       workerId: workerId,
       displayName: displayName.isEmpty ? email.split('@').first : displayName,
+      realName: realName,
     );
 
     // 3. Write to Firestore & Update Metadata if needed
@@ -191,5 +193,35 @@ class AuthService {
   Future<AppUser?> getUserById(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.exists ? AppUser.fromFirestore(doc) : null;
+  }
+
+  /// Returns a stream of the top 50 Students & Faculty members ranked by points.
+  Stream<List<AppUser>> getTopPublicUsers() {
+    return _firestore
+        .collection('users')
+        .where('role', whereIn: ['student', 'faculty'])
+        .where('points', isGreaterThan: 0)
+        .orderBy('points', descending: true)
+        .limit(50)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => AppUser.fromFirestore(doc)).toList(),
+        );
+  }
+
+  /// Returns a stream of the top 50 Workers ranked by points and rating.
+  Stream<List<AppUser>> getTopWorkers() {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'worker')
+        .where('rating', isGreaterThan: 0)
+        .orderBy('rating', descending: true)
+        .limit(50)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => AppUser.fromFirestore(doc)).toList(),
+        );
   }
 }

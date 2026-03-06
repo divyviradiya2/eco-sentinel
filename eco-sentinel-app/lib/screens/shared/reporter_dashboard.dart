@@ -6,6 +6,7 @@ import '../../widgets/issue_card.dart';
 import 'settings_screen.dart';
 import 'qr_scanner_screen.dart';
 import 'report_issue_screen.dart';
+import 'leaderboard_screen.dart';
 import '../../models/campus_location.dart';
 import '../../models/issue_model.dart';
 
@@ -68,6 +69,15 @@ class _ReporterDashboardState extends State<ReporterDashboard> {
         elevation: 0,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Leaderboard',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+            ),
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             padding: const EdgeInsets.only(right: 16),

@@ -7,6 +7,7 @@ import 'package:swachh_mobile/models/issue_model.dart';
 import 'package:swachh_mobile/models/user_model.dart';
 
 import '../shared/settings_screen.dart';
+import '../shared/leaderboard_screen.dart';
 
 class WorkerDashboard extends StatefulWidget {
   const WorkerDashboard({super.key});
@@ -53,6 +54,19 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
         foregroundColor: Colors.black87,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Leaderboard',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LeaderboardScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',

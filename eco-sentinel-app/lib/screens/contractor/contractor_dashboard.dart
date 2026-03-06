@@ -5,6 +5,7 @@ import 'package:swachh_mobile/widgets/issue_card.dart';
 import 'package:swachh_mobile/models/user_model.dart';
 
 import '../shared/settings_screen.dart';
+import '../shared/leaderboard_screen.dart';
 
 class ContractorDashboardScreen extends StatefulWidget {
   const ContractorDashboardScreen({super.key});
@@ -57,6 +58,19 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         foregroundColor: Colors.black87,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Leaderboard',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LeaderboardScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
