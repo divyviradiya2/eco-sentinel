@@ -295,4 +295,61 @@ void main() {
       ).called(1);
     },
   );
+
+  test(
+    'verifyTask updates issue status and awards 10 points to reporter',
+    () async {
+      final mockTransaction = MockTransaction();
+      mockFirestore.mockTransactionInstance = mockTransaction;
+
+      final issueDocRef = MockDocumentReference();
+      when(
+        () => mockCollectionReference.doc('issue_1'),
+      ).thenReturn(issueDocRef);
+
+      final mockIssueDoc = MockDocumentSnapshot<Map<String, dynamic>>();
+      final mockUserDoc = MockDocumentSnapshot<Map<String, dynamic>>();
+      final userDocRef = MockDocumentReference();
+      when(
+        () => mockTransaction.get(issueDocRef),
+      ).thenAnswer((_) async => mockIssueDoc);
+      when(() => mockIssueDoc.exists).thenReturn(true);
+      when(() => mockIssueDoc.data()).thenReturn({
+        'reporter_id': 'user_1',
+        'assigned_worker_id': null, // Test without worker for simplicity
+      });
+      final mockUserCollection = MockCollectionReference();
+      when(
+        () => mockFirestore.collection('users'),
+      ).thenReturn(mockUserCollection);
+      when(() => mockUserCollection.doc('user_1')).thenReturn(userDocRef);
+
+      when(() => mockUserDoc.exists).thenReturn(true);
+      when(
+        () => mockTransaction.get(userDocRef),
+      ).thenAnswer((_) async => mockUserDoc);
+
+      when(
+        () => mockTransaction.update(issueDocRef, any()),
+      ).thenReturn(mockTransaction);
+      when(
+        () => mockTransaction.update(userDocRef, any()),
+      ).thenReturn(mockTransaction);
+
+      await issueService.verifyTask('issue_1', rating: 5, feedback: 'Good');
+
+      final capturedIssueArgs = verify(
+        () => mockTransaction.update(issueDocRef, captureAny()),
+      ).captured;
+      final issueUpdateMap = capturedIssueArgs.first as Map<String, dynamic>;
+      expect(issueUpdateMap['status'], 'Closed');
+      expect(issueUpdateMap['verification_rating'], 5);
+
+      final capturedUserArgs = verify(
+        () => mockTransaction.update(userDocRef, captureAny()),
+      ).captured;
+      final userUpdateMap = capturedUserArgs.first as Map<String, dynamic>;
+      expect(userUpdateMap['points'], isA<FieldValue>());
+    },
+  );
 }

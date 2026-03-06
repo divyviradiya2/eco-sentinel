@@ -198,24 +198,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 13,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          user.role.name.toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.green.shade700,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              user.role.name.toUpperCase(),
+                              style: TextStyle(
+                                color: Colors.green.shade700,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.stars,
+                                  size: 12,
+                                  color: Colors.orange.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${user.points} PTS',
+                                  style: TextStyle(
+                                    color: Colors.orange.shade700,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

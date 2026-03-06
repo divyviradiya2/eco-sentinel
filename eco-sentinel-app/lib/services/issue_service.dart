@@ -166,13 +166,22 @@ class IssueService {
       final issueRef = _firestore.collection('issues').doc(issueId);
       final issueDoc = await transaction.get(issueRef);
       final workerId = issueDoc.data()?['assigned_worker_id'] as String?;
+      final reporterId = issueDoc.data()?['reporter_id'] as String?;
 
-      DocumentSnapshot? workerDoc;
-      DocumentReference? workerRef;
+      DocumentSnapshot<Map<String, dynamic>>? workerDoc;
+      DocumentReference<Map<String, dynamic>>? workerRef;
 
       if (workerId != null && rating != null) {
         workerRef = _firestore.collection('users').doc(workerId);
         workerDoc = await transaction.get(workerRef);
+      }
+
+      DocumentSnapshot<Map<String, dynamic>>? reporterDoc;
+      DocumentReference<Map<String, dynamic>>? reporterRef;
+
+      if (reporterId != null) {
+        reporterRef = _firestore.collection('users').doc(reporterId);
+        reporterDoc = await transaction.get(reporterRef);
       }
 
       // 2. PERFORM ALL WRITES SECOND
@@ -207,6 +216,11 @@ class IssueService {
           'points': currentPoints + earnedPoints,
         });
       }
+
+      // Reward reporter
+      if (reporterDoc != null && reporterRef != null && reporterDoc.exists) {
+        transaction.update(reporterRef, {'points': FieldValue.increment(10)});
+      }
     });
   }
 
@@ -229,8 +243,8 @@ class IssueService {
       final issueDoc = await transaction.get(issueRef);
       final workerId = issueDoc.data()?['assigned_worker_id'] as String?;
 
-      DocumentSnapshot? workerDoc;
-      DocumentReference? workerRef;
+      DocumentSnapshot<Map<String, dynamic>>? workerDoc;
+      DocumentReference<Map<String, dynamic>>? workerRef;
 
       if (workerId != null) {
         workerRef = _firestore.collection('users').doc(workerId);
