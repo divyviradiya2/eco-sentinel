@@ -131,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
     String? workerId,
     String displayName = '',
     String? realName,
+    String? invitationCode,
   }) async {
     _setLoading(true);
     _clearError();
@@ -146,6 +147,7 @@ class AuthProvider extends ChangeNotifier {
         workerId: workerId,
         displayName: displayName,
         realName: realName,
+        invitationCode: invitationCode,
       );
 
       // Auto sign out after registration to force manual login (Production best practice)

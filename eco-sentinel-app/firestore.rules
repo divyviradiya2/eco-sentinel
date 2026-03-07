@@ -13,13 +13,33 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == userId
                     && (
-                      // Student/Faculty: Must have registration fields, can have spam metrics
-                      (request.resource.data.role in ['student', 'faculty'] 
-                       && !request.resource.data.keys().hasAny(['worker_id', 'rating', 'total_rating', 'completed_tasks_count']))
-                      ||
-                      // Worker/Contractor/Admin: Strictly NO spam metrics or reporter IDs
-                      (request.resource.data.role in ['worker', 'contractor', 'admin']
-                       && !request.resource.data.keys().hasAny(['enrollment_no', 'faculty_id', 'real_name', 'points', 'spam_strikes', 'is_flagged']))
+                      // -------------------------------------------------------------
+                      // 1. Check Field Schema strictness
+                      // -------------------------------------------------------------
+                      (
+                        (request.resource.data.role in ['student', 'faculty'] 
+                         && !request.resource.data.keys().hasAny(['worker_id', 'rating', 'total_rating', 'completed_tasks_count']))
+                        ||
+                        (request.resource.data.role in ['worker', 'contractor', 'admin']
+                         && !request.resource.data.keys().hasAny(['enrollment_no', 'faculty_id', 'real_name', 'points', 'spam_strikes', 'is_flagged']))
+                      )
+                      &&
+                      // -------------------------------------------------------------
+                      // 2. Secret Passcode Validation for Restricted Roles
+                      // -------------------------------------------------------------
+                      (
+                        // Students don't need a code
+                        request.resource.data.role == 'student'
+                        ||
+                        // Workers, Contractors, Faculty MUST claim a valid passocde
+                        (
+                          request.resource.data.role in ['worker', 'contractor', 'faculty']
+                          && request.resource.data.keys().hasAll(['invitation_code'])
+                          // 'getAfter' resolves against the database state AFTER the batched write
+                          && getAfter(/databases/$(database)/documents/invitation_codes/$(request.resource.data.invitation_code)).data.used_by == request.auth.uid
+                          && getAfter(/databases/$(database)/documents/invitation_codes/$(request.resource.data.invitation_code)).data.role == request.resource.data.role
+                        )
+                      )
                     );
       
       allow update: if request.auth != null && (
@@ -79,6 +99,22 @@ service cloud.firestore {
                     );
       
       allow write: if false;
+    }
+
+    match /invitation_codes/{codeId} {
+      allow get: if true;
+      allow list: if false;
+
+      // Allow claiming the code
+      allow update: if request.auth != null
+                    // Must not have been claimed yet
+                    && resource.data.used_by == null
+                    // Must only be setting 'used_by'
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used_by'])
+                    // Must be setting the used_by to their own UID
+                    && request.resource.data.used_by == request.auth.uid;
+      
+      allow create, delete: if false;
     }
   }
 }

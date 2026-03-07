@@ -78,6 +78,7 @@ class AuthService {
     String? workerId,
     String displayName = '',
     String? realName,
+    String? invitationCode,
   }) async {
     // Client-side validation guards
     if (role == UserRole.student &&
@@ -105,6 +106,37 @@ class AuthService {
       }
     }
 
+    // Passcode Validation for restricted roles
+    final restrictedRoles = [
+      UserRole.worker,
+      UserRole.contractor,
+      UserRole.faculty,
+    ];
+    if (restrictedRoles.contains(role)) {
+      if (invitationCode == null || invitationCode.isEmpty) {
+        throw Exception('Authorization Passcode is required for this role.');
+      }
+
+      final docRef = _firestore
+          .collection('invitation_codes')
+          .doc(invitationCode);
+      final snapshot = await docRef.get();
+
+      if (!snapshot.exists) {
+        throw Exception('Invalid Authorization Passcode.');
+      }
+
+      final data = snapshot.data()!;
+      if (data['role'] != role.name) {
+        throw Exception(
+          'This Passcode is not authorized for the requested role.',
+        );
+      }
+      if (data['used_by'] != null) {
+        throw Exception('This Passcode has already been used.');
+      }
+    }
+
     // 1. Create Firebase Auth account
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -113,7 +145,42 @@ class AuthService {
 
     final uid = credential.user!.uid;
 
-    // 2. Build the AppUser model
+    // 1.5 Unique ID Verification (After Auth creation to allow Firestore read rules)
+    try {
+      String? idField;
+      String? idValue;
+
+      if (role == UserRole.student) {
+        idField = 'enrollment_no';
+        idValue = enrollmentNo;
+      } else if (role == UserRole.faculty) {
+        idField = 'faculty_id';
+        idValue = facultyId;
+      } else if (role == UserRole.worker || role == UserRole.contractor) {
+        idField = 'worker_id';
+        idValue = workerId;
+      }
+
+      if (idField != null && idValue != null) {
+        final existingUser = await _firestore
+            .collection('users')
+            .where(idField, isEqualTo: idValue)
+            .limit(1)
+            .get();
+
+        if (existingUser.docs.isNotEmpty) {
+          throw Exception(
+            'The ID ($idValue) is already registered to another account.',
+          );
+        }
+      }
+    } catch (e) {
+      // Clean up the orphaned auth account if validation fails
+      await credential.user?.delete();
+      rethrow;
+    }
+
+    // 2. Build the AppUser model (Include invitationCode for Firestore rules)
     final appUser = AppUser(
       uid: uid,
       email: email,
@@ -124,10 +191,21 @@ class AuthService {
       displayName: displayName.isEmpty ? email.split('@').first : displayName,
       realName: realName,
     );
+    final userData = appUser.toFirestore();
+    if (invitationCode != null) {
+      userData['invitation_code'] = invitationCode;
+    }
 
     // 3. Write to Firestore & Update Metadata if needed
     final batch = _firestore.batch();
-    batch.set(_firestore.collection('users').doc(uid), appUser.toFirestore());
+    batch.set(_firestore.collection('users').doc(uid), userData);
+
+    if (invitationCode != null) {
+      batch.update(
+        _firestore.collection('invitation_codes').doc(invitationCode),
+        {'used_by': uid},
+      );
+    }
 
     if (role == UserRole.contractor) {
       batch.update(_firestore.collection('metadata').doc('roles'), {
@@ -135,7 +213,14 @@ class AuthService {
       });
     }
 
-    await batch.commit();
+    try {
+      await batch.commit();
+    } catch (e) {
+      // If the batch fails (e.g. race condition on the code or rules violation),
+      // delete the "orphaned" Auth account to maintain atomicity
+      await credential.user?.delete();
+      throw Exception('Registration failed during data initialization: $e');
+    }
 
     return appUser;
   }

@@ -68,6 +68,7 @@ class FakeAuthProvider extends ChangeNotifier implements AuthProvider {
     String? workerId,
     String displayName = '',
     String? realName,
+    String? invitationCode,
   }) async => true;
 }
 

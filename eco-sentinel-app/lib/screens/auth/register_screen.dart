@@ -22,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _idCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _realNameCtrl = TextEditingController();
+  final _secretCtrl = TextEditingController();
 
   UserRole _selectedRole = UserRole.student;
   bool _obscurePassword = true;
@@ -33,6 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _idCtrl.dispose();
     _nameCtrl.dispose();
     _realNameCtrl.dispose();
+    _secretCtrl.dispose();
     super.dispose();
   }
 
@@ -82,6 +84,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
+
+    // Validate that the user provided an invitation code if attempting to register for a restricted role.
+    final restrictedRoles = [
+      UserRole.worker,
+      UserRole.contractor,
+      UserRole.faculty,
+    ];
+    String? invitationCode;
+    if (restrictedRoles.contains(_selectedRole)) {
+      invitationCode = _secretCtrl.text.trim();
+      if (invitationCode.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Registration Authorization Passcode is required for this role.',
+            ),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        return;
+      }
+    }
+
     final success = await auth.register(
       email: _emailCtrl.text.trim(),
       password: _passwordCtrl.text,
@@ -93,6 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       realName: _selectedRole == UserRole.faculty
           ? _realNameCtrl.text.trim()
           : null,
+      invitationCode: invitationCode,
     );
 
     if (!mounted) return;
@@ -268,7 +294,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     validator: _validateId,
                   ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+
+                // --- Registration Secret (Restricted Roles) ---
+                if ([
+                  UserRole.worker,
+                  UserRole.contractor,
+                  UserRole.faculty,
+                ].contains(_selectedRole)) ...[
+                  TextFormField(
+                    controller: _secretCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Registration Authorization Passcode',
+                      hintText: 'Required for this role',
+                      prefixIcon: Icon(Icons.security_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
 
                 // --- Submit ---
                 SizedBox(
