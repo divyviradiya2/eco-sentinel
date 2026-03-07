@@ -5,12 +5,10 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import '../config/app_config.dart';
 
 class StorageService {
   final http.Client _client;
-
-  // ImgBB API Key (Get a free one at https://api.imgbb.com/)
-  static const String _imgBbApiKey = 'eff3124dea0758470b7f5bac02f43e84';
 
   StorageService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -33,7 +31,7 @@ class StorageService {
     final uri = Uri.parse('https://api.imgbb.com/1/upload');
     final response = await _client.post(
       uri,
-      body: {'key': _imgBbApiKey, 'image': base64Image},
+      body: {'key': AppConfig.imgBbApiKey, 'image': base64Image},
     );
 
     if (response.statusCode == 200) {

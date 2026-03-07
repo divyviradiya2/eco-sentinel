@@ -12,11 +12,13 @@ import 'screens/contractor/contractor_dashboard.dart';
 import 'screens/shared/settings_screen.dart';
 import 'screens/shared/reporter_dashboard.dart';
 import 'providers/issue_provider.dart';
+import 'config/app_config.dart';
 import 'services/issue_service.dart';
 import 'services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const EcoSentinelApp());
 }

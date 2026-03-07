@@ -50,6 +50,7 @@ dependencies:
   geolocator: ^14.0.2
   timeago: ^3.7.1
   shared_preferences: ^2.5.2
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,7 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/logo/logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
