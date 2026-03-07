@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/app_logo.dart';
 
 /// Registration screen that collects email, password, role, and the
 /// corresponding ID (enrollment or worker) before creating the account.
@@ -143,6 +144,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
+                const Center(child: AppLogo(size: 80)),
+                const SizedBox(height: 24),
+
                 // --- Display Name ---
                 TextFormField(
                   controller: _nameCtrl,

@@ -18,11 +18,11 @@ import 'services/auth_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const SwachhCampusApp());
+  runApp(const EcoSentinelApp());
 }
 
-class SwachhCampusApp extends StatelessWidget {
-  const SwachhCampusApp({super.key});
+class EcoSentinelApp extends StatelessWidget {
+  const EcoSentinelApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class SwachhCampusApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => IssueProvider(IssueService())),
       ],
       child: MaterialApp(
-        title: 'Swachh Campus 360',
+        title: 'Eco Sentinel',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorSchemeSeed: Colors.green,
@@ -108,16 +108,18 @@ class _DashboardRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final role = auth.appUser!.role;
+    const appTitle = 'Eco Sentinel';
+
     switch (role) {
       case UserRole.student:
         return const ReporterDashboard(
           key: ValueKey('student_dash'),
-          title: 'Student Dashboard',
+          title: appTitle,
         );
       case UserRole.faculty:
         return const ReporterDashboard(
           key: ValueKey('faculty_dash'),
-          title: 'Faculty Dashboard',
+          title: appTitle,
         );
       case UserRole.worker:
         return const WorkerDashboard(key: ValueKey('worker_dash'));

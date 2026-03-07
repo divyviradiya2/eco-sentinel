@@ -1,0 +1,5 @@
+Analyzing eco-sentinel-app...                                   
+
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\auth\register_screen.dart:220:19 - deprecated_member_use
+
+1 issue found. (ran in 8.4s)

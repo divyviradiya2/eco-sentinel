@@ -425,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 48),
           Center(
             child: Text(
-              'Swachh Campus v1.0.0',
+              'Eco Sentinel v1.0.0',
               style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
             ),
           ),
