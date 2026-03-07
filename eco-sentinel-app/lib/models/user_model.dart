@@ -77,22 +77,45 @@ class AppUser {
   }
 
   /// Converts this [AppUser] to a Firestore-compatible map.
+  /// Production implementation: Only includes fields relevant to the user's role
+  /// to keep documents clean and enforce schema integrity.
   Map<String, dynamic> toFirestore() {
-    return {
+    // Base fields common to all users
+    final map = <String, dynamic>{
       'email': email,
       'role': role.name,
-      'enrollment_no': enrollmentNo,
-      'faculty_id': facultyId,
-      'worker_id': workerId,
       'display_name': displayName,
-      'real_name': realName,
-      'points': points,
-      'rating': rating,
-      'total_rating': totalRating,
-      'completed_tasks_count': completedTasksCount,
-      'spam_strikes': spamStrikes,
-      'is_flagged': isFlagged,
       'created_at': createdAt,
     };
+
+    // Role-specific fields
+    switch (role) {
+      case UserRole.student:
+        map['enrollment_no'] = enrollmentNo;
+        map['points'] = points;
+        map['spam_strikes'] = spamStrikes;
+        map['is_flagged'] = isFlagged;
+        break;
+      case UserRole.faculty:
+        map['faculty_id'] = facultyId;
+        map['real_name'] = realName;
+        map['points'] = points;
+        map['spam_strikes'] = spamStrikes;
+        map['is_flagged'] = isFlagged;
+        break;
+      case UserRole.worker:
+        map['worker_id'] = workerId;
+        map['rating'] = rating;
+        map['total_rating'] = totalRating;
+        map['completed_tasks_count'] = completedTasksCount;
+        break;
+      case UserRole.contractor:
+        map['worker_id'] = workerId;
+        break;
+      case UserRole.admin:
+        break;
+    }
+
+    return map;
   }
 }

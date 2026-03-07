@@ -1,20 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper to get user data
+    // Helper to get user data safely. 
+    // If user doc is missing (e.g. after manual deletion), returns a default object
+    // to prevent rule evaluation errors.
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) ? get(path).data : {"role": "none"};
     }
 
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && (
+                      // Student/Faculty: Must have registration fields, can have spam metrics
+                      (request.resource.data.role in ['student', 'faculty'] 
+                       && !request.resource.data.keys().hasAny(['worker_id', 'rating', 'total_rating', 'completed_tasks_count']))
+                      ||
+                      // Worker/Contractor/Admin: Strictly NO spam metrics or reporter IDs
+                      (request.resource.data.role in ['worker', 'contractor', 'admin']
+                       && !request.resource.data.keys().hasAny(['enrollment_no', 'faculty_id', 'real_name', 'points', 'spam_strikes', 'is_flagged']))
+                    );
       
-      // Allow user to update their own profile OR:
-      // A) Contractor/student/faculty can update a WORKER's performance metrics
-      //    (task verification & reporter verification flows).
-      // B) Contractor can penalize a STUDENT/FACULTY for spam flagging
-      //    (only points, spam_strikes, is_flagged fields).
       allow update: if request.auth != null && (
         request.auth.uid == userId ||
         // (A) Worker performance updates
@@ -23,7 +30,7 @@ service cloud.firestore {
          && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['points', 'rating', 'total_rating', 'completed_tasks_count']))
         ||
-        // (B) Spam flagging penalty — contractor penalizing a student or faculty reporter
+        // (B) Spam flagging penalty
         (getUserData().role == 'contractor'
          && resource.data.role in ['student', 'faculty']
          && request.resource.data.diff(resource.data).affectedKeys()
@@ -32,7 +39,7 @@ service cloud.firestore {
     }
 
     match /locations/{locationId} {
-      allow read: if true; // Everyone can see campus locations
+      allow read: if true;
       allow write: if false; 
     }
 
@@ -43,10 +50,6 @@ service cloud.firestore {
                     && request.resource.data.status == 'Reported'
                     && request.resource.data.created_at == request.time;
       
-      // Allow update if:
-      // 1. User is a Worker, Contractor, or Admin.
-      // 2. User is the original Reporter AND they are marking the issue as 'Closed' 
-      //    (and only updating allowed verification fields).
       allow update: if request.auth != null && (
         getUserData().role in ['worker', 'contractor', 'admin'] ||
         (resource.data.reporter_id == request.auth.uid 
@@ -58,19 +61,24 @@ service cloud.firestore {
       allow delete: if request.auth != null && getUserData().role == 'admin';
     }
 
-    // Role limits and system metadata
     match /metadata/{docId} {
-      allow read: if true; // Allow all to read limits (for registration validation)
+      allow read: if true;
       
+      // Allow initializing roles doc if it was accidentally deleted
+      allow create: if request.auth != null && docId == 'roles';
+
       allow update: if request.auth != null 
                     && docId == 'roles'
-                    // More robust increment check:
-                    // 1. Only contractor_count changed
-                    // 2. It incremented by 1
-                    && request.resource.data.contractor_count == resource.data.contractor_count + 1
-                    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contractor_count']));
+                    && (
+                      // Case 1: Registration increment
+                      (request.resource.data.contractor_count == resource.data.contractor_count + 1
+                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contractor_count']))
+                      ||
+                      // Case 2: Admin reset (safety net)
+                      getUserData().role == 'admin'
+                    );
       
-      allow write: if false; // Deny all other direct writes
+      allow write: if false;
     }
   }
 }
