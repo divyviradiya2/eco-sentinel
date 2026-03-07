@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/campus_location.dart';
 
@@ -47,6 +48,23 @@ class LocationService {
       return null;
     } catch (e) {
       throw Exception('Failed to fetch location by ID: $e');
+    }
+  }
+
+  /// Fetches global campus geofence configuration
+  Future<Map<String, dynamic>?> getCampusGeofence() async {
+    try {
+      final doc = await _firestore
+          .collection('metadata')
+          .doc('campus_configs')
+          .get();
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching campus geofence: $e');
+      return null;
     }
   }
 }

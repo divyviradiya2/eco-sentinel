@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../models/campus_location.dart';
 import '../../services/storage_service.dart';
 import '../../services/issue_service.dart';
+import '../../services/location_service.dart';
 
 class ReportIssueScreen extends StatefulWidget {
   final CampusLocation location;
@@ -97,9 +98,34 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                 position.latitude,
                 position.longitude,
               );
+
+              // 2.5 Geofence Validation
+              final locationService = LocationService();
+              final geofence = await locationService.getCampusGeofence();
+              if (geofence != null && geofence['center'] != null) {
+                final center = geofence['center'] as GeoPoint;
+                final radius = (geofence['radius_meters'] as num).toDouble();
+
+                final distance = Geolocator.distanceBetween(
+                  position.latitude,
+                  position.longitude,
+                  center.latitude,
+                  center.longitude,
+                );
+
+                if (distance > radius) {
+                  throw Exception(
+                    'You are outside the campus reporting area. '
+                    'Reports can only be submitted within ${radius.toInt()}m of the campus.',
+                  );
+                }
+              }
             }
           }
         } catch (e) {
+          if (e is Exception && e.toString().contains('outside the campus')) {
+            rethrow;
+          }
           debugPrint('Could not get exact location: $e');
         }
 
